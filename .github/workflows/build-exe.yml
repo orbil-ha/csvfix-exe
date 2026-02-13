@@ -1,0 +1,33 @@
+name: Build portable EXE from PowerShell
+
+on:
+  workflow_dispatch:   # allows "Run workflow" button
+  push:
+    branches: [ main ] # builds on each push to main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PowerShell module ps2exe
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+          Install-Module ps2exe -Scope CurrentUser -Force
+
+      - name: Compile to EXE
+        shell: pwsh
+        run: |
+          $src = "src/process-esker.ps1"
+          $out = "dist/SynthomerCsvFixer.exe"
+          New-Item -ItemType Directory -Force -Path (Split-Path $out) | Out-Null
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SynthomerCsvFixer
+          path: dist/SynthomerCsvFixer.exe
